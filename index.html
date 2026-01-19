@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASÍLICA | Control de Almacén</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script> 
+
+    <style>
+        :root{
+            --red:#b71c1c;
+            --red-light:#e53935;
+            --white:#ffffff;
+            --bg:#f2f2f2;
+            --success:#2e7d32;
+            --danger:#c62828;                                               
+            --shadow:0 8px 20px rgba(254, 254, 254, 0.15);
+        }
+
+        *{box-sizing:border-box}
+        body{ margin:0; font-family:"Segoe UI", sans-serif; background:var(--bg); overflow-x: hidden; }
+
+        #loginWrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg,var(--red),var(--red-light));
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 18px;
+            width: 360px; text-align: center; box-shadow: var(--shadow);
+        }
+        .login-card img{ max-width:200px; margin-bottom:15px; border-radius: 8px; }
+
+        #mainApp { display: none; }
+        
+        .top-bar {
+            background: var(--red); color: white; padding: 10px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .top-bar img{ height:35px; border-radius: 4px; }
+
+        .menu-icon {
+            cursor: pointer; display: flex; flex-direction: column;
+            justify-content: space-around; width: 30px; height: 25px;
+            background: transparent; border: none; z-index: 1100;
+        }
+        .menu-icon div { width: 30px; height: 3px; background-color: white; border-radius: 5px; }
+
+        /* DISEÑO MEJORADO DEL MENÚ LATERAL */
+        .side-menu {
+            height: 100%; width: 0; position: fixed; z-index: 2000;
+            top: 0; right: 0; background-color: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(10px);
+            overflow-x: hidden; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+
+        .menu-header {
+            padding: 30px 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, #fdfdfd, #f2f2f2);
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        .menu-header img {
+            width: 80px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            margin-bottom: 10px;
+        }
+
+        .side-menu button {
+            padding: 16px 25px;
+            font-size: 15px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 90%;
+            margin: 8px auto;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .side-menu button:hover {
+            background-color: #fcebeb;
+            color: var(--red);
+            transform: translateX(-5px);
+        }
+
+        .side-menu .logout-btn {
+            margin-top: 40px;
+            color: var(--danger);
+            border: 1px solid #ffebee;
+        }
+
+        .side-menu .logout-btn:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        /* MODAL HISTORIAL */
+        .modal {
+            display: none; position: fixed; z-index: 3000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background-color: white; margin: 5% auto; padding: 20px;
+            border-radius: 15px; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto;
+        }
+
+        .overlay { display: none; position: fixed; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
+
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .main-layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
+        .card-box { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        h2 { color: var(--red); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .table-container { max-height: 70vh; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #fafafa; padding: 12px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #eee; }
+        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        
+        input, select, .btn-submit { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 10px; border: 1px solid #ddd; }
+        .btn-submit { border: none; color: white; font-weight: bold; cursor: pointer; }
+        .btn-in { background: var(--success); }
+        .btn-out { background: var(--danger); }
+        .status-pill { padding: 3px 12px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; }
+        .critical { background: #ffd7d7; color: #b71c1c; }
+        .ok { background: #d7ffd9; color: #2e7d32; }
+
+        @media(max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body onload="forzarLogin()">
+
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+<div id="sideMenu" class="side-menu">
+    <span class="close-btn" onclick="closeMenu()">✕ CERRAR</span>
+    
+    <div class="menu-header">
+        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
+        <div style="font-weight: 800; color: var(--red); font-size: 1.2rem; letter-spacing: 1px;">FILSA</div>
+        <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">Control de Almacén</div>
+    </div>
+
+    <button onclick="openHistorial()">
+        <span style="font-size: 1.2rem;">📜</span> Ver Historial de Movimientos
+    </button>
+    
+    <button onclick="exportarPDF()">
+        <span style="font-size: 1.2rem;">📄</span> Descargar Reporte de Stock
+    </button>
+
+    <button onclick="cerrarSesion()" class="logout-btn">
+        <span style="font-size: 1.2rem;">🚪</span> Cerrar Sesión
+    </button>
+</div>
+
+<div id="modalHistorial" class="modal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="border:none;">Historial de Movimientos</h2>
+            <button onclick="closeHistorial()" style="cursor:pointer; border:none; background:var(--red); color:white; border-radius:5px; padding:5px 10px;">Cerrar</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Material</th>
+                        <th>Cantidad</th>
+                        <th>Ref / Modelo</th>
+                    </tr>
+                </thead>
+                <tbody id="historialBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="loginWrapper">
+    <div class="login-card">
+        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
+        <h3 style="color:var(--red); margin-bottom:20px;">SISTEMA DE CONTROL</h3>
+        <input type="email" id="user" placeholder="Usuario">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button class="btn-submit" style="background:var(--red);" onclick="validarLogin()">INGRESAR</button>
+    </div>
+</div>
+
+<div id="mainApp">
+    <header class="top-bar">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
+            <span style="font-weight:bold; letter-spacing:1px; font-size: 14px;">ALMACÉN GENERAL</span>
+        </div>
+        <button class="menu-icon" onclick="openMenu()">
+            <div></div><div></div><div></div>
+        </button>
+    </header>
+
+    <div class="container">
+        <div class="main-layout">
+            <div class="column-actions">
+                <aside class="card-box" style="border-top: 5px solid var(--danger);">
+                    <h2>Registrar SALIDA</h2>
+                    <label>Material:</label>
+                    <select id="out_item"></select>
+                    <label>Cantidad:</label>
+                    <input type="number" id="out_qty" placeholder="0.0" step="0.1">
+                    <label>Modelo / Uso:</label>
+                    <input type="text" id="out_model">
+                    <label>Referencia:</label>
+                    <input type="text" id="out_ref">
+                    <button class="btn-submit btn-out" onclick="procesar('salida')">DAR DE BAJA</button>
+                </aside>
+
+                <aside class="card-box" style="border-top: 5px solid var(--success);">
+                    <h2>Registrar ENTRADA</h2>
+                    <label>Material:</label>
+                    <select id="in_item"></select>
+                    <label>Cantidad:</label>
+                    <input type="number" id="in_qty" placeholder="0.0" step="0.1">
+                    <label>Modelo:</label>
+                    <input type="text" id="in_model">
+                    <label>Referencia:</label>
+                    <input type="text" id="in_ref">
+                    <button class="btn-submit btn-in" onclick="procesar('entrada')">DAR DE ALTA</button>
+                </aside>
+            </div>
+
+            <main class="card-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:10px;">
+                    <h2>Existencias</h2>
+                    <input type="text" id="busqueda" placeholder="🔎 Buscar material..." style="width:250px; margin:0;">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th style="width:100px; text-align:center;">Stock</th>
+                                <th style="width:120px; text-align:center;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaBody"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyA_CeDhAhWEyqBO5rO0yo2JdttXKz5CCjU",
+        authDomain: "basilica-dd3b1.firebaseapp.com",
+        databaseURL: "https://basilica-dd3b1-default-rtdb.firebaseio.com",
+        projectId: "basilica-dd3b1",
+        storageBucket: "basilica-dd3b1.firebasestorage.app",
+        messagingSenderId: "1000902846657",
+        appId: "1:1000902846657:web:5739da8a32cbb425b74c40"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    function forzarLogin() { auth.signOut(); }
+
+    const LISTA_INICIAL = [
+        { n: "BOLSA PLASTICA 50 X 70 X KG", s: 0 },
+        { n: "BOLSA PLASTICA DE 1 X 1 KG", s: 0 },
+        { n: "BURBUJA GRANDE REFORZADA 1/2 DE 1,22 X 61,5 M ROLLOS", s: 11.53 },
+        { n: "BURBUJA CHICA 3/16 DE 1,22 X 123 M", s: 0 },
+        { n: "BOLSA DE MANGA TUBULAR DE 1.5M", s: 1 },
+        { n: "BOLSA DE MANGA TUBULAR DE 61CM", s: 1 },
+        { n: "PAPEL CORRUGADO DE 1,50 M", s: 2 },
+        { n: "MALLA MOSQUIETERA ALUMINIO CAJA 1.50 X 30 METROS", s: 22 },
+        { n: "MALLA MOSQUITERA GALVANIZADA 1,20 x 30 M", s: 15 },
+        { n: "BOBINA PAPEL BLANCO RAYAS NEGRAS DE 1 M", s: 1 },
+        { n: "POCKET DE 24\"", s: 8 },
+        { n: "CELULOSA (ESCOLAR ESPECIAL) 1,5 X 100 M", s: 15 },
+        { n: "MICROGLASS DE 27\" X 152 METROS", s: 6 },
+        { n: "FIBRA DE VIDRIO DE 1,22 X 15M", s: 7 },
+        { n: "CARBOSOR DE 1/2\" DE 1,40M X 10 METROS", s: 6 },
+        { n: "DK-10 1/8\" DE 1,4 X 100 METROS (ACTUAL)", s: 2 },
+        { n: "DK-10-1/2\" RB-10 DE 1,40 X 50 METROS (ACTUAL)", s: 8 },
+        { n: "ESPONJA 20 PPI DE 1/2 DE 1,4 X 2,0", s: 10 },
+        { n: "LAMINA LISA INOX CAL 22 T-304 4´X 10´", s: 35 },
+        { n: "PANEL AAF DE 20 X 25 X 2", s: 99 },
+        { n: "CAMFIL 20 X 20 X 2", s: 100 },
+        { n: "CARTUCHO HILADO 4 1/2 X 1 X 20\" 50 MICRAS", s: 320 }
+    ];
+
+    let materiales = [];
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById("loginWrapper").style.display = "none";
+            document.getElementById("mainApp").style.display = "block";
+            cargarDatos();
+        } else {
+            document.getElementById("loginWrapper").style.display = "flex";
+            document.getElementById("mainApp").style.display = "none";
+        }
+    });
+
+    function cargarDatos() {
+        db.ref('inventario_basilica').on('value', snap => {
+            if (!snap.exists()) {
+                LISTA_INICIAL.forEach(i => db.ref('inventario_basilica').push(i));
+            } else {
+                const data = snap.val();
+                materiales = Object.keys(data).map(k => ({ key: k, ...data[k] }));
+                renderizar();
+            }
+        });
+    }
+
+    function renderizar() {
+        const body = document.getElementById("tablaBody");
+        const selIn = document.getElementById("in_item");
+        const selOut = document.getElementById("out_item");
+        const query = document.getElementById("busqueda").value.toLowerCase();
+        
+        body.innerHTML = "";
+        selIn.innerHTML = selOut.innerHTML = "<option value=''>-- Seleccionar --</option>";
+
+        materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
+            if (query && !m.n.toLowerCase().includes(query)) return;
+            const bajo = m.s < 5;
+            body.innerHTML += `<tr><td>${m.n}</td><td style="text-align:center;"><strong>${m.s}</strong></td><td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'STOCK'}</span></td></tr>`;
+            let opt = `<option value="${m.key}">${m.n}</option>`;
+            selIn.innerHTML += opt; selOut.innerHTML += opt;
+        });
+    }
+
+    function procesar(tipo) {
+        const pfx = tipo === 'entrada' ? 'in' : 'out';
+        const id = document.getElementById(`${pfx}_item`).value;
+        const qty = parseFloat(document.getElementById(`${pfx}_qty`).value);
+        const ref = document.getElementById(`${pfx}_ref`).value;
+        const mod = document.getElementById(`${pfx}_model`).value;
+
+        if (!id || isNaN(qty) || qty <= 0) { alert("Complete los campos obligatorios."); return; }
+
+        const item = materiales.find(x => x.key === id);
+        let total = tipo === 'entrada' ? item.s + qty : item.s - qty;
+        if (total < 0) { alert("Stock insuficiente"); return; }
+
+        db.ref(`inventario_basilica/${id}`).update({ s: total });
+
+        db.ref('historial_basilica').push({
+            fecha: new Date().toLocaleString(),
+            tipo: tipo.toUpperCase(),
+            material: item.n,
+            cantidad: qty,
+            referencia: ref || 'S/R',
+            modelo: mod || 'N/A'
+        });
+
+        alert("✅ Movimiento registrado");
+        document.getElementById(`${pfx}_qty`).value = "";
+        document.getElementById(`${pfx}_ref`).value = "";
+        document.getElementById(`${pfx}_model`).value = "";
+    }
+
+    function cargarHistorial() {
+        db.ref('historial_basilica').limitToLast(100).on('value', snap => {
+            const hBody = document.getElementById("historialBody");
+            hBody.innerHTML = "";
+            const data = snap.val();
+            if(!data) return;
+            Object.values(data).reverse().forEach(h => {
+                hBody.innerHTML += `<tr><td>${h.fecha}</td><td>${h.tipo}</td><td>${h.material}</td><td>${h.cantidad}</td><td>${h.referencia} / ${h.modelo}</td></tr>`;
+            });
+        });
+    }
+
+    function openMenu() { document.getElementById("sideMenu").style.width = "300px"; document.getElementById("overlay").style.display = "block"; }
+    function closeMenu() { document.getElementById("sideMenu").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+    function openHistorial() { closeMenu(); document.getElementById("modalHistorial").style.display = "block"; cargarHistorial(); }
+    function closeHistorial() { document.getElementById("modalHistorial").style.display = "none"; }
+
+    function validarLogin() {
+        const u = document.getElementById("user").value;
+        const p = document.getElementById("pass").value;
+        auth.signInWithEmailAndPassword(u,p).catch(() => alert("Credenciales incorrectas"));
+    }
+
+    function cerrarSesion() { closeMenu(); auth.signOut(); }
+    document.getElementById("busqueda").addEventListener("input", renderizar);
+
+    function exportarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("INVENTARIO ACTUAL BASILICA - FILSA", 14, 15);
+        const filas = materiales.map(m => [m.n, m.s, m.s < 5 ? 'BAJO' : 'STOCK']);
+        doc.autoTable({ head: [['Material', 'Stock', 'Estado']], body: filas, startY: 20 });
+        doc.save("Reporte_Stock.pdf");
+    }
+</script>
+</body>
+</html>
