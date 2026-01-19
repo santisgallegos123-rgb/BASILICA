@@ -124,10 +124,6 @@
         <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg" style="width:80px; border-radius:10px;">
         <h3 style="color:var(--red); margin:10px 0;">FILSA</h3>
     </div>
-
-    <button onclick="window.location.href='https://github.com/TU_USUARIO/TU_REPOSITORIO'">
-        <span>📂</span> Inventarios (GitHub)
-    </button>
     <button onclick="openHistorial()"><span>📜</span> Historial de Movimientos</button>
     <button onclick="exportarPDF()"><span>📄</span> Descargar Reporte PDF</button>
     <button onclick="cerrarSesion()" style="color:var(--danger); margin-top:30px;"><span>🚪</span> Cerrar Sesión</button>
@@ -155,20 +151,22 @@
         <h2 id="editMaterialName" style="color:var(--red); font-size:1.1rem; margin-top:0;">Ajustar Material</h2>
         <input type="hidden" id="editKey">
         
-        <label><b>Stock Actual (Existencia):</b></label>
-        <input type="number" id="editStock" step="0.1" style="border: 1px solid var(--red); background: #fffcfc;">
+        <label><b>Stock Actual:</b></label>
+        <input type="number" id="editStock" step="0.1" style="border: 1px solid var(--red);">
+
+        <label><b>Unidad de Medida (m, kg, pzs...):</b></label>
+        <input type="text" id="editUnitManual" placeholder="Ej: kg">
         
-        <label>Stock Mínimo:</label>
+        <label>Mínimo:</label>
         <input type="number" id="editMin" step="0.1">
         
-        <label>Stock Máximo:</label>
+        <label>Máximo:</label>
         <input type="number" id="editMax" step="0.1">
         
         <div style="display:flex; gap:10px; margin-top:10px;">
             <button class="btn-submit" style="background:#666;" onclick="closeModal('modalEditar')">Cancelar</button>
-            <button class="btn-submit" style="background:var(--success);" onclick="guardarEdicion()">Guardar Cambios</button>
+            <button class="btn-submit" style="background:var(--success);" onclick="guardarEdicion()">Guardar</button>
         </div>
-        <p style="font-size: 0.7rem; color: #888; margin-top: 10px;">* El ajuste de Stock manual no aparecerá en el historial de entradas/salidas.</p>
     </div>
 </div>
 
@@ -195,19 +193,19 @@
         <div class="main-layout">
             <div class="column-actions">
                 <div class="card-box" style="border-top:5px solid var(--danger); margin-bottom:20px;">
-                    <h2 style="font-size:1rem; color:var(--danger); margin-bottom:15px;">REGISTRAR SALIDA</h2>
+                    <h2 style="font-size:1rem; color:var(--danger);">REGISTRAR SALIDA</h2>
                     <select id="out_item"></select>
                     <input type="number" id="out_qty" placeholder="Cantidad" step="0.1">
-                    <input type="text" id="out_unit" placeholder="Unidad (kg, pzs, rollos)">
+                    <input type="text" id="out_unit" placeholder="Confirmar Unidad" readonly style="background:#f9f9f9; color:#888;">
                     <input type="text" id="out_model" placeholder="Modelo / Uso">
                     <input type="text" id="out_ref" placeholder="Referencia">
                     <button class="btn-submit btn-out" onclick="procesar('salida')">DAR DE BAJA</button>
                 </div>
                 <div class="card-box" style="border-top:5px solid var(--success);">
-                    <h2 style="font-size:1rem; color:var(--success); margin-bottom:15px;">REGISTRAR ENTRADA</h2>
+                    <h2 style="font-size:1rem; color:var(--success);">REGISTRAR ENTRADA</h2>
                     <select id="in_item"></select>
                     <input type="number" id="in_qty" placeholder="Cantidad" step="0.1">
-                    <input type="text" id="in_unit" placeholder="Unidad (kg, pzs, rollos)">
+                    <input type="text" id="in_unit" placeholder="Confirmar Unidad" readonly style="background:#f9f9f9; color:#888;">
                     <input type="text" id="in_model" placeholder="Modelo">
                     <input type="text" id="in_ref" placeholder="Referencia">
                     <button class="btn-submit btn-in" onclick="procesar('entrada')">DAR DE ALTA</button>
@@ -216,19 +214,20 @@
 
             <div class="card-box">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h2 style="margin:0; font-size:1rem;">ESTADO DE EXISTENCIAS</h2>
-                    <input type="text" id="busqueda" placeholder="🔎 Buscar material..." style="width:200px; margin:0;">
+                    <h2 style="margin:0; font-size:1rem;">EXISTENCIAS</h2>
+                    <input type="text" id="busqueda" placeholder="🔎 Buscar..." style="width:200px; margin:0;">
                 </div>
                 <div style="overflow-x:auto;">
                     <table>
                         <thead>
                             <tr>
                                 <th>Descripción</th>
+                                <th style="text-align:center;">Unidad</th>
                                 <th style="text-align:center;">Mín</th>
                                 <th style="text-align:center;">Máx</th>
                                 <th style="text-align:center;">Stock</th>
                                 <th style="text-align:center;">Estado</th>
-                                <th style="text-align:center;">Ajustar</th>
+                                <th style="text-align:center;">Edit</th>
                             </tr>
                         </thead>
                         <tbody id="tablaBody"></tbody>
@@ -291,59 +290,72 @@
         materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
             if (query && !m.n.toLowerCase().includes(query)) return;
             const bajo = m.s < (m.min || 0);
+            const unidad = m.u || '-';
+            
             body.innerHTML += `<tr>
                 <td>${m.n}</td>
+                <td style="text-align:center; color:#666;">${unidad}</td>
                 <td style="text-align:center; color:#888;">${m.min || 0}</td>
                 <td style="text-align:center; color:#888;">${m.max || 0}</td>
                 <td style="text-align:center;"><strong>${m.s}</strong></td>
                 <td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'OK'}</span></td>
-                <td style="text-align:center;"><button class="edit-btn" onclick="abrirEditor('${m.key}', '${m.n}', ${m.min || 0}, ${m.max || 0}, ${m.s})">⚙️</button></td>
+                <td style="text-align:center;"><button class="edit-btn" onclick="abrirEditor('${m.key}', '${m.n}', ${m.min || 0}, ${m.max || 0}, ${m.s}, '${unidad}')">⚙️</button></td>
             </tr>`;
             let opt = `<option value="${m.key}">${m.n}</option>`;
             selIn.innerHTML += opt; selOut.innerHTML += opt;
         });
     }
 
-    // ABRIR EDITOR CON STOCK ACTUAL INCLUIDO
-    function abrirEditor(key, nombre, min, max, stock) {
+    // Al seleccionar un item para entrada/salida, autocompletar la unidad
+    document.getElementById("in_item").addEventListener("change", (e) => {
+        const item = materiales.find(m => m.key === e.target.value);
+        document.getElementById("in_unit").value = item ? (item.u || '') : '';
+    });
+    document.getElementById("out_item").addEventListener("change", (e) => {
+        const item = materiales.find(m => m.key === e.target.value);
+        document.getElementById("out_unit").value = item ? (item.u || '') : '';
+    });
+
+    function abrirEditor(key, nombre, min, max, stock, unidad) {
         document.getElementById("editKey").value = key;
         document.getElementById("editMaterialName").innerText = nombre;
         document.getElementById("editMin").value = min;
         document.getElementById("editMax").value = max;
-        document.getElementById("editStock").value = stock; // <--- Nuevo
+        document.getElementById("editStock").value = stock;
+        document.getElementById("editUnitManual").value = unidad === '-' ? '' : unidad;
         document.getElementById("modalEditar").style.display = "block";
     }
 
-    // GUARDAR CAMBIOS INCLUYENDO EL STOCK
     function guardarEdicion() {
         const key = document.getElementById("editKey").value;
         const nuevoMin = parseFloat(document.getElementById("editMin").value) || 0;
         const nuevoMax = parseFloat(document.getElementById("editMax").value) || 0;
         const nuevoStock = parseFloat(document.getElementById("editStock").value) || 0;
+        const nuevaUnidad = document.getElementById("editUnitManual").value.trim();
 
         db.ref(`inventario_basilica/${key}`).update({ 
             min: nuevoMin, 
             max: nuevoMax,
-            s: nuevoStock // <--- Actualiza stock directamente
+            s: nuevoStock,
+            u: nuevaUnidad
         })
-        .then(() => { closeModal('modalEditar'); alert("Ajuste guardado correctamente"); });
+        .then(() => { closeModal('modalEditar'); alert("Material actualizado"); });
     }
 
     function validarLogin() {
         const u = document.getElementById("user").value.trim();
         const p = document.getElementById("pass").value.trim();
-        auth.signInWithEmailAndPassword(u, p).catch(() => alert("Credenciales incorrectas"));
+        auth.signInWithEmailAndPassword(u, p).catch(() => alert("Error de acceso"));
     }
 
     function procesar(tipo) {
         const pfx = tipo === 'entrada' ? 'in' : 'out';
         const id = document.getElementById(`${pfx}_item`).value;
         const qty = parseFloat(document.getElementById(`${pfx}_qty`).value);
-        const unit = document.getElementById(`${pfx}_unit`).value;
         const ref = document.getElementById(`${pfx}_ref`).value;
         const mod = document.getElementById(`${pfx}_model`).value;
 
-        if (!id || isNaN(qty) || qty <= 0) { alert("Campos incompletos"); return; }
+        if (!id || isNaN(qty) || qty <= 0) { alert("Complete los campos"); return; }
 
         const item = materiales.find(x => x.key === id);
         let total = tipo === 'entrada' ? item.s + qty : item.s - qty;
@@ -355,23 +367,19 @@
             tipo: tipo.toUpperCase(),
             material: item.n,
             cantidad: qty,
-            unidad: unit || 'N/A',
+            unidad: item.u || 'N/A',
             referencia: ref || '-',
             modelo: mod || '-'
         });
-        alert("Operación exitosa");
+        alert("Operación completada");
         document.getElementById(`${pfx}_qty`).value = "";
     }
 
-    function openMenu() { 
-        document.getElementById("sideMenu").style.width = "280px"; 
-        document.getElementById("overlay").style.display = "block";
-    }
-    
-    function closeMenu() { 
-        document.getElementById("sideMenu").style.width = "0"; 
-        document.getElementById("overlay").style.display = "none";
-    }
+    function openMenu() { document.getElementById("sideMenu").style.width = "280px"; document.getElementById("overlay").style.display = "block"; }
+    function closeMenu() { document.getElementById("sideMenu").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    function cerrarSesion() { auth.signOut(); }
+    document.getElementById("busqueda").addEventListener("input", renderizar);
 
     function openHistorial() { 
         closeMenu(); 
@@ -386,17 +394,13 @@
         });
     }
 
-    function closeModal(id) { document.getElementById(id).style.display = "none"; }
-    function cerrarSesion() { closeMenu(); auth.signOut(); }
-    document.getElementById("busqueda").addEventListener("input", renderizar);
-
     function exportarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("FILSA - INVENTARIO GENERAL", 14, 15);
-        const filas = materiales.map(m => [m.n, m.min || 0, m.max || 0, m.s, m.s < (m.min || 0) ? 'BAJO' : 'OK']);
-        doc.autoTable({ head: [['Material', 'Min', 'Max', 'Stock', 'Estado']], body: filas, startY: 20 });
-        doc.save("Inventario_Filsa.pdf");
+        doc.text("REPORTE FILSA", 14, 15);
+        const filas = materiales.map(m => [m.n, m.u || '-', m.min || 0, m.max || 0, m.s]);
+        doc.autoTable({ head: [['Material', 'Unidad', 'Min', 'Max', 'Stock']], body: filas, startY: 20 });
+        doc.save("Inventario.pdf");
     }
 </script>
 </body>
