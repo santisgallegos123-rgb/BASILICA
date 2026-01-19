@@ -20,18 +20,15 @@
             --bg:#f2f2f2;
             --success:#2e7d32;
             --danger:#c62828;                                               
-            --shadow:0 8px 20px rgba(254, 254, 254, 0.15);
+            --shadow:0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
         *{box-sizing:border-box}
         body{ margin:0; font-family:"Segoe UI", sans-serif; background:var(--bg); overflow-x: hidden; }
 
         #loginWrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg,var(--red),var(--red-light));
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; background: linear-gradient(135deg,var(--red),var(--red-light));
         }
         .login-card {
             background: white; padding: 40px; border-radius: 18px;
@@ -48,108 +45,70 @@
         }
         .top-bar img{ height:35px; border-radius: 4px; }
 
-        .menu-icon {
-            cursor: pointer; display: flex; flex-direction: column;
-            justify-content: space-around; width: 30px; height: 25px;
-            background: transparent; border: none; z-index: 1100;
-        }
-        .menu-icon div { width: 30px; height: 3px; background-color: white; border-radius: 5px; }
-
-        /* DISEÑO MEJORADO DEL MENÚ LATERAL */
+        /* MENÚ LATERAL */
         .side-menu {
             height: 100%; width: 0; position: fixed; z-index: 2000;
-            top: 0; right: 0; background-color: rgba(255, 255, 255, 0.98); 
-            backdrop-filter: blur(10px);
-            overflow-x: hidden; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-        }
-
-        .menu-header {
-            padding: 30px 20px;
-            text-align: center;
-            background: linear-gradient(to bottom, #fdfdfd, #f2f2f2);
-            border-bottom: 1px solid #eee;
-            margin-bottom: 15px;
-        }
-
-        .menu-header img {
-            width: 80px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-            margin-bottom: 10px;
-        }
-
-        .side-menu button {
-            padding: 16px 25px;
-            font-size: 15px;
-            color: #444;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            width: 90%;
-            margin: 8px auto;
-            text-align: left;
-            border: none;
-            background: none;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .side-menu button:hover {
-            background-color: #fcebeb;
-            color: var(--red);
-            transform: translateX(-5px);
-        }
-
-        .side-menu .logout-btn {
-            margin-top: 40px;
-            color: var(--danger);
-            border: 1px solid #ffebee;
-        }
-
-        .side-menu .logout-btn:hover {
-            background-color: var(--danger);
-            color: white;
+            top: 0; right: 0; background-color: white; 
+            overflow-x: hidden; transition: 0.4s;
+            padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
         }
 
         .close-btn {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            font-size: 20px;
-            cursor: pointer;
-            color: #aaa;
-            font-weight: bold;
+            position: absolute; top: 15px; left: 20px;
+            font-size: 14px; font-weight: bold; color: #888;
+            cursor: pointer; border: 1px solid #ddd; padding: 5px 10px; border-radius: 5px;
         }
 
-        /* MODAL HISTORIAL */
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1500;
+        }
+
+        .side-menu button {
+            padding: 16px 25px; font-size: 15px; color: #444;
+            display: flex; align-items: center; gap: 15px; width: 90%;
+            margin: 8px auto; text-align: left; border: none; background: none;
+            cursor: pointer; border-radius: 12px; transition: 0.3s;
+        }
+        .side-menu button:hover { background-color: #fcebeb; color: var(--red); }
+
+        .menu-icon {
+            cursor: pointer; display: flex; flex-direction: column;
+            justify-content: space-around; width: 30px; height: 25px;
+            background: transparent; border: none;
+        }
+        .menu-icon div { width: 30px; height: 3px; background-color: white; border-radius: 5px; }
+
+        /* MODALES */
         .modal {
             display: none; position: fixed; z-index: 3000; left: 0; top: 0;
             width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
         }
         .modal-content {
-            background-color: white; margin: 5% auto; padding: 20px;
-            border-radius: 15px; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto;
+            background-color: white; margin: 5% auto; padding: 25px;
+            border-radius: 15px; width: 95%; max-width: 900px; max-height: 85vh; overflow-y: auto;
         }
 
-        .overlay { display: none; position: fixed; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
-
         .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-        .main-layout { display: grid; grid-template-columns: 380px 1fr; gap: 20px; }
-        .card-box { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 20px; }
-        h2 { color: var(--red); font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .table-container { max-height: 70vh; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #fafafa; padding: 12px; text-align: left; position: sticky; top: 0; border-bottom: 2px solid #eee; }
-        td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        .main-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+        .card-box { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); }
         
-        input, select, .btn-submit { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 10px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #fafafa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 0.75rem; color: #666; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        
+        input, select, .btn-submit { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; }
         .btn-submit { border: none; color: white; font-weight: bold; cursor: pointer; }
         .btn-in { background: var(--success); }
         .btn-out { background: var(--danger); }
-        .status-pill { padding: 3px 12px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: bold; }
         .critical { background: #ffd7d7; color: #b71c1c; }
         .ok { background: #d7ffd9; color: #2e7d32; }
+
+        .edit-btn { background: none; border: none; cursor: pointer; color: #999; }
+        .edit-btn:hover { color: var(--red); transform: scale(1.1); }
 
         @media(max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
     </style>
@@ -161,41 +120,29 @@
 <div id="sideMenu" class="side-menu">
     <span class="close-btn" onclick="closeMenu()">✕ CERRAR</span>
     
-    <div class="menu-header">
-        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
-        <div style="font-weight: 800; color: var(--red); font-size: 1.2rem; letter-spacing: 1px;">FILSA</div>
-        <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">Control de Almacén</div>
+    <div style="text-align:center; padding:20px; margin-top:20px;">
+        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg" style="width:80px; border-radius:10px;">
+        <h3 style="color:var(--red); margin:10px 0;">FILSA</h3>
     </div>
 
-    <button onclick="openHistorial()">
-        <span style="font-size: 1.2rem;">📜</span> Ver Historial de Movimientos
+    <button onclick="window.location.href='https://github.com/TU_USUARIO/TU_REPOSITORIO'">
+        <span>📂</span> Inventarios (GitHub)
     </button>
-    
-    <button onclick="exportarPDF()">
-        <span style="font-size: 1.2rem;">📄</span> Descargar Reporte de Stock
-    </button>
-
-    <button onclick="cerrarSesion()" class="logout-btn">
-        <span style="font-size: 1.2rem;">🚪</span> Cerrar Sesión
-    </button>
+    <button onclick="openHistorial()"><span>📜</span> Historial de Movimientos</button>
+    <button onclick="exportarPDF()"><span>📄</span> Descargar Reporte PDF</button>
+    <button onclick="cerrarSesion()" style="color:var(--danger); margin-top:30px;"><span>🚪</span> Cerrar Sesión</button>
 </div>
 
 <div id="modalHistorial" class="modal">
     <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="border:none;">Historial de Movimientos</h2>
-            <button onclick="closeHistorial()" style="cursor:pointer; border:none; background:var(--red); color:white; border-radius:5px; padding:5px 10px;">Cerrar</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="margin:0; color:var(--red);">Historial de Movimientos</h2>
+            <button onclick="closeModal('modalHistorial')" style="border:none; background:var(--red); color:white; padding:5px 15px; border-radius:5px; cursor:pointer;">Cerrar</button>
         </div>
-        <div class="table-container">
+        <div style="overflow-x:auto;">
             <table>
                 <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Tipo</th>
-                        <th>Material</th>
-                        <th>Cantidad</th>
-                        <th>Ref / Modelo</th>
-                    </tr>
+                    <tr><th>Fecha</th><th>Tipo</th><th>Material</th><th>Cant.</th><th>Unidad</th><th>Ref/Modelo</th></tr>
                 </thead>
                 <tbody id="historialBody"></tbody>
             </table>
@@ -203,10 +150,32 @@
     </div>
 </div>
 
+<div id="modalEditar" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <h2 id="editMaterialName" style="color:var(--red); font-size:1.1rem; margin-top:0;">Ajustar Material</h2>
+        <input type="hidden" id="editKey">
+        
+        <label><b>Stock Actual (Existencia):</b></label>
+        <input type="number" id="editStock" step="0.1" style="border: 1px solid var(--red); background: #fffcfc;">
+        
+        <label>Stock Mínimo:</label>
+        <input type="number" id="editMin" step="0.1">
+        
+        <label>Stock Máximo:</label>
+        <input type="number" id="editMax" step="0.1">
+        
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn-submit" style="background:#666;" onclick="closeModal('modalEditar')">Cancelar</button>
+            <button class="btn-submit" style="background:var(--success);" onclick="guardarEdicion()">Guardar Cambios</button>
+        </div>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 10px;">* El ajuste de Stock manual no aparecerá en el historial de entradas/salidas.</p>
+    </div>
+</div>
+
 <div id="loginWrapper">
     <div class="login-card">
         <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
-        <h3 style="color:var(--red); margin-bottom:20px;">SISTEMA DE CONTROL</h3>
+        <h3 style="color:var(--red);">SISTEMA DE CONTROL</h3>
         <input type="email" id="user" placeholder="Usuario">
         <input type="password" id="pass" placeholder="Contraseña">
         <button class="btn-submit" style="background:var(--red);" onclick="validarLogin()">INGRESAR</button>
@@ -215,63 +184,57 @@
 
 <div id="mainApp">
     <header class="top-bar">
-        <div style="display:flex; align-items:center; gap:15px;">
+        <div style="display:flex; align-items:center; gap:10px;">
             <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
-            <span style="font-weight:bold; letter-spacing:1px; font-size: 14px;">ALMACÉN GENERAL</span>
+            <span style="font-weight:bold;">ALMACÉN GENERAL</span>
         </div>
-        <button class="menu-icon" onclick="openMenu()">
-            <div></div><div></div><div></div>
-        </button>
+        <button class="menu-icon" onclick="openMenu()"><div></div><div></div><div></div></button>
     </header>
 
     <div class="container">
         <div class="main-layout">
             <div class="column-actions">
-                <aside class="card-box" style="border-top: 5px solid var(--danger);">
-                    <h2>Registrar SALIDA</h2>
-                    <label>Material:</label>
+                <div class="card-box" style="border-top:5px solid var(--danger); margin-bottom:20px;">
+                    <h2 style="font-size:1rem; color:var(--danger); margin-bottom:15px;">REGISTRAR SALIDA</h2>
                     <select id="out_item"></select>
-                    <label>Cantidad:</label>
-                    <input type="number" id="out_qty" placeholder="0.0" step="0.1">
-                    <label>Modelo / Uso:</label>
-                    <input type="text" id="out_model">
-                    <label>Referencia:</label>
-                    <input type="text" id="out_ref">
+                    <input type="number" id="out_qty" placeholder="Cantidad" step="0.1">
+                    <input type="text" id="out_unit" placeholder="Unidad (kg, pzs, rollos)">
+                    <input type="text" id="out_model" placeholder="Modelo / Uso">
+                    <input type="text" id="out_ref" placeholder="Referencia">
                     <button class="btn-submit btn-out" onclick="procesar('salida')">DAR DE BAJA</button>
-                </aside>
-
-                <aside class="card-box" style="border-top: 5px solid var(--success);">
-                    <h2>Registrar ENTRADA</h2>
-                    <label>Material:</label>
+                </div>
+                <div class="card-box" style="border-top:5px solid var(--success);">
+                    <h2 style="font-size:1rem; color:var(--success); margin-bottom:15px;">REGISTRAR ENTRADA</h2>
                     <select id="in_item"></select>
-                    <label>Cantidad:</label>
-                    <input type="number" id="in_qty" placeholder="0.0" step="0.1">
-                    <label>Modelo:</label>
-                    <input type="text" id="in_model">
-                    <label>Referencia:</label>
-                    <input type="text" id="in_ref">
+                    <input type="number" id="in_qty" placeholder="Cantidad" step="0.1">
+                    <input type="text" id="in_unit" placeholder="Unidad (kg, pzs, rollos)">
+                    <input type="text" id="in_model" placeholder="Modelo">
+                    <input type="text" id="in_ref" placeholder="Referencia">
                     <button class="btn-submit btn-in" onclick="procesar('entrada')">DAR DE ALTA</button>
-                </aside>
+                </div>
             </div>
 
-            <main class="card-box">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap:10px;">
-                    <h2>Existencias</h2>
-                    <input type="text" id="busqueda" placeholder="🔎 Buscar material..." style="width:250px; margin:0;">
+            <div class="card-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2 style="margin:0; font-size:1rem;">ESTADO DE EXISTENCIAS</h2>
+                    <input type="text" id="busqueda" placeholder="🔎 Buscar material..." style="width:200px; margin:0;">
                 </div>
-                <div class="table-container">
+                <div style="overflow-x:auto;">
                     <table>
                         <thead>
                             <tr>
                                 <th>Descripción</th>
-                                <th style="width:100px; text-align:center;">Stock</th>
-                                <th style="width:120px; text-align:center;">Estado</th>
+                                <th style="text-align:center;">Mín</th>
+                                <th style="text-align:center;">Máx</th>
+                                <th style="text-align:center;">Stock</th>
+                                <th style="text-align:center;">Estado</th>
+                                <th style="text-align:center;">Ajustar</th>
                             </tr>
                         </thead>
                         <tbody id="tablaBody"></tbody>
                     </table>
                 </div>
-            </main>
+            </div>
         </div>
     </div>
 </div>
@@ -293,31 +256,6 @@
 
     function forzarLogin() { auth.signOut(); }
 
-    const LISTA_INICIAL = [
-        { n: "BOLSA PLASTICA 50 X 70 X KG", s: 0 },
-        { n: "BOLSA PLASTICA DE 1 X 1 KG", s: 0 },
-        { n: "BURBUJA GRANDE REFORZADA 1/2 DE 1,22 X 61,5 M ROLLOS", s: 11.53 },
-        { n: "BURBUJA CHICA 3/16 DE 1,22 X 123 M", s: 0 },
-        { n: "BOLSA DE MANGA TUBULAR DE 1.5M", s: 1 },
-        { n: "BOLSA DE MANGA TUBULAR DE 61CM", s: 1 },
-        { n: "PAPEL CORRUGADO DE 1,50 M", s: 2 },
-        { n: "MALLA MOSQUIETERA ALUMINIO CAJA 1.50 X 30 METROS", s: 22 },
-        { n: "MALLA MOSQUITERA GALVANIZADA 1,20 x 30 M", s: 15 },
-        { n: "BOBINA PAPEL BLANCO RAYAS NEGRAS DE 1 M", s: 1 },
-        { n: "POCKET DE 24\"", s: 8 },
-        { n: "CELULOSA (ESCOLAR ESPECIAL) 1,5 X 100 M", s: 15 },
-        { n: "MICROGLASS DE 27\" X 152 METROS", s: 6 },
-        { n: "FIBRA DE VIDRIO DE 1,22 X 15M", s: 7 },
-        { n: "CARBOSOR DE 1/2\" DE 1,40M X 10 METROS", s: 6 },
-        { n: "DK-10 1/8\" DE 1,4 X 100 METROS (ACTUAL)", s: 2 },
-        { n: "DK-10-1/2\" RB-10 DE 1,40 X 50 METROS (ACTUAL)", s: 8 },
-        { n: "ESPONJA 20 PPI DE 1/2 DE 1,4 X 2,0", s: 10 },
-        { n: "LAMINA LISA INOX CAL 22 T-304 4´X 10´", s: 35 },
-        { n: "PANEL AAF DE 20 X 25 X 2", s: 99 },
-        { n: "CAMFIL 20 X 20 X 2", s: 100 },
-        { n: "CARTUCHO HILADO 4 1/2 X 1 X 20\" 50 MICRAS", s: 320 }
-    ];
-
     let materiales = [];
 
     auth.onAuthStateChanged(user => {
@@ -333,10 +271,8 @@
 
     function cargarDatos() {
         db.ref('inventario_basilica').on('value', snap => {
-            if (!snap.exists()) {
-                LISTA_INICIAL.forEach(i => db.ref('inventario_basilica').push(i));
-            } else {
-                const data = snap.val();
+            const data = snap.val();
+            if(data){
                 materiales = Object.keys(data).map(k => ({ key: k, ...data[k] }));
                 renderizar();
             }
@@ -354,76 +290,113 @@
 
         materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
             if (query && !m.n.toLowerCase().includes(query)) return;
-            const bajo = m.s < 5;
-            body.innerHTML += `<tr><td>${m.n}</td><td style="text-align:center;"><strong>${m.s}</strong></td><td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'STOCK'}</span></td></tr>`;
+            const bajo = m.s < (m.min || 0);
+            body.innerHTML += `<tr>
+                <td>${m.n}</td>
+                <td style="text-align:center; color:#888;">${m.min || 0}</td>
+                <td style="text-align:center; color:#888;">${m.max || 0}</td>
+                <td style="text-align:center;"><strong>${m.s}</strong></td>
+                <td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'OK'}</span></td>
+                <td style="text-align:center;"><button class="edit-btn" onclick="abrirEditor('${m.key}', '${m.n}', ${m.min || 0}, ${m.max || 0}, ${m.s})">⚙️</button></td>
+            </tr>`;
             let opt = `<option value="${m.key}">${m.n}</option>`;
             selIn.innerHTML += opt; selOut.innerHTML += opt;
         });
+    }
+
+    // ABRIR EDITOR CON STOCK ACTUAL INCLUIDO
+    function abrirEditor(key, nombre, min, max, stock) {
+        document.getElementById("editKey").value = key;
+        document.getElementById("editMaterialName").innerText = nombre;
+        document.getElementById("editMin").value = min;
+        document.getElementById("editMax").value = max;
+        document.getElementById("editStock").value = stock; // <--- Nuevo
+        document.getElementById("modalEditar").style.display = "block";
+    }
+
+    // GUARDAR CAMBIOS INCLUYENDO EL STOCK
+    function guardarEdicion() {
+        const key = document.getElementById("editKey").value;
+        const nuevoMin = parseFloat(document.getElementById("editMin").value) || 0;
+        const nuevoMax = parseFloat(document.getElementById("editMax").value) || 0;
+        const nuevoStock = parseFloat(document.getElementById("editStock").value) || 0;
+
+        db.ref(`inventario_basilica/${key}`).update({ 
+            min: nuevoMin, 
+            max: nuevoMax,
+            s: nuevoStock // <--- Actualiza stock directamente
+        })
+        .then(() => { closeModal('modalEditar'); alert("Ajuste guardado correctamente"); });
+    }
+
+    function validarLogin() {
+        const u = document.getElementById("user").value.trim();
+        const p = document.getElementById("pass").value.trim();
+        auth.signInWithEmailAndPassword(u, p).catch(() => alert("Credenciales incorrectas"));
     }
 
     function procesar(tipo) {
         const pfx = tipo === 'entrada' ? 'in' : 'out';
         const id = document.getElementById(`${pfx}_item`).value;
         const qty = parseFloat(document.getElementById(`${pfx}_qty`).value);
+        const unit = document.getElementById(`${pfx}_unit`).value;
         const ref = document.getElementById(`${pfx}_ref`).value;
         const mod = document.getElementById(`${pfx}_model`).value;
 
-        if (!id || isNaN(qty) || qty <= 0) { alert("Complete los campos obligatorios."); return; }
+        if (!id || isNaN(qty) || qty <= 0) { alert("Campos incompletos"); return; }
 
         const item = materiales.find(x => x.key === id);
         let total = tipo === 'entrada' ? item.s + qty : item.s - qty;
         if (total < 0) { alert("Stock insuficiente"); return; }
 
         db.ref(`inventario_basilica/${id}`).update({ s: total });
-
         db.ref('historial_basilica').push({
             fecha: new Date().toLocaleString(),
             tipo: tipo.toUpperCase(),
             material: item.n,
             cantidad: qty,
-            referencia: ref || 'S/R',
-            modelo: mod || 'N/A'
+            unidad: unit || 'N/A',
+            referencia: ref || '-',
+            modelo: mod || '-'
         });
-
-        alert("✅ Movimiento registrado");
+        alert("Operación exitosa");
         document.getElementById(`${pfx}_qty`).value = "";
-        document.getElementById(`${pfx}_ref`).value = "";
-        document.getElementById(`${pfx}_model`).value = "";
     }
 
-    function cargarHistorial() {
-        db.ref('historial_basilica').limitToLast(100).on('value', snap => {
-            const hBody = document.getElementById("historialBody");
-            hBody.innerHTML = "";
+    function openMenu() { 
+        document.getElementById("sideMenu").style.width = "280px"; 
+        document.getElementById("overlay").style.display = "block";
+    }
+    
+    function closeMenu() { 
+        document.getElementById("sideMenu").style.width = "0"; 
+        document.getElementById("overlay").style.display = "none";
+    }
+
+    function openHistorial() { 
+        closeMenu(); 
+        document.getElementById("modalHistorial").style.display = "block"; 
+        db.ref('historial_basilica').limitToLast(50).on('value', snap => {
+            const body = document.getElementById("historialBody");
+            body.innerHTML = "";
             const data = snap.val();
-            if(!data) return;
-            Object.values(data).reverse().forEach(h => {
-                hBody.innerHTML += `<tr><td>${h.fecha}</td><td>${h.tipo}</td><td>${h.material}</td><td>${h.cantidad}</td><td>${h.referencia} / ${h.modelo}</td></tr>`;
+            if(data) Object.values(data).reverse().forEach(h => {
+                body.innerHTML += `<tr><td>${h.fecha}</td><td>${h.tipo}</td><td>${h.material}</td><td>${h.cantidad}</td><td>${h.unidad}</td><td>${h.referencia}</td></tr>`;
             });
         });
     }
 
-    function openMenu() { document.getElementById("sideMenu").style.width = "300px"; document.getElementById("overlay").style.display = "block"; }
-    function closeMenu() { document.getElementById("sideMenu").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
-    function openHistorial() { closeMenu(); document.getElementById("modalHistorial").style.display = "block"; cargarHistorial(); }
-    function closeHistorial() { document.getElementById("modalHistorial").style.display = "none"; }
-
-    function validarLogin() {
-        const u = document.getElementById("user").value;
-        const p = document.getElementById("pass").value;
-        auth.signInWithEmailAndPassword(u,p).catch(() => alert("Credenciales incorrectas"));
-    }
-
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
     function cerrarSesion() { closeMenu(); auth.signOut(); }
     document.getElementById("busqueda").addEventListener("input", renderizar);
 
     function exportarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("INVENTARIO ACTUAL BASILICA - FILSA", 14, 15);
-        const filas = materiales.map(m => [m.n, m.s, m.s < 5 ? 'BAJO' : 'STOCK']);
-        doc.autoTable({ head: [['Material', 'Stock', 'Estado']], body: filas, startY: 20 });
-        doc.save("Reporte_Stock.pdf");
+        doc.text("FILSA - INVENTARIO GENERAL", 14, 15);
+        const filas = materiales.map(m => [m.n, m.min || 0, m.max || 0, m.s, m.s < (m.min || 0) ? 'BAJO' : 'OK']);
+        doc.autoTable({ head: [['Material', 'Min', 'Max', 'Stock', 'Estado']], body: filas, startY: 20 });
+        doc.save("Inventario_Filsa.pdf");
     }
 </script>
 </body>
