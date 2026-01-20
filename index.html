@@ -279,33 +279,43 @@
     }
 
     function renderizar() {
-        const body = document.getElementById("tablaBody");
-        const selIn = document.getElementById("in_item");
-        const selOut = document.getElementById("out_item");
-        const query = document.getElementById("busqueda").value.toLowerCase();
+    const body = document.getElementById("tablaBody");
+    const selIn = document.getElementById("in_item");
+    const selOut = document.getElementById("out_item");
+    const query = document.getElementById("busqueda").value.toLowerCase();
+    
+    // Limpiamos una sola vez al inicio
+    let htmlTabla = "";
+    let options = "<option value=''>-- Seleccionar --</option>";
+
+    materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
+        if (query && !m.n.toLowerCase().includes(query)) return;
         
-        body.innerHTML = "";
-        selIn.innerHTML = selOut.innerHTML = "<option value=''>-- Seleccionar --</option>";
+        const bajo = m.s < (m.min || 0);
+        const unidad = m.u || '-';
+        
+        // Construimos el string de la fila
+        // IMPORTANTE: Solo pasamos m.key para evitar errores de comillas en los nombres
+        htmlTabla += `<tr>
+            <td>${m.n}</td>
+            <td style="text-align:center; color:#666;">${unidad}</td>
+            <td style="text-align:center; color:#888;">${m.min || 0}</td>
+            <td style="text-align:center; color:#888;">${m.max || 0}</td>
+            <td style="text-align:center;"><strong>${m.s}</strong></td>
+            <td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'OK'}</span></td>
+            <td style="text-align:center;">
+                <button class="edit-btn" onclick="abrirEditor('${m.key}')">⚙️</button>
+            </td>
+        </tr>`;
+        
+        options += `<option value="${m.key}">${m.n}</option>`;
+    });
 
-        materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
-            if (query && !m.n.toLowerCase().includes(query)) return;
-            const bajo = m.s < (m.min || 0);
-            const unidad = m.u || '-';
-            
-            body.innerHTML += `<tr>
-                <td>${m.n}</td>
-                <td style="text-align:center; color:#666;">${unidad}</td>
-                <td style="text-align:center; color:#888;">${m.min || 0}</td>
-                <td style="text-align:center; color:#888;">${m.max || 0}</td>
-                <td style="text-align:center;"><strong>${m.s}</strong></td>
-                <td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'OK'}</span></td>
-                <td style="text-align:center;"><button class="edit-btn" onclick="abrirEditor('${m.key}', '${m.n}', ${m.min || 0}, ${m.max || 0}, ${m.s}, '${unidad}')">⚙️</button></td>
-            </tr>`;
-            let opt = `<option value="${m.key}">${m.n}</option>`;
-            selIn.innerHTML += opt; selOut.innerHTML += opt;
-        });
-    }
-
+    // Inyectamos todo el HTML de golpe (más eficiente)
+    body.innerHTML = htmlTabla;
+    selIn.innerHTML = options;
+    selOut.innerHTML = options;
+}
     // Al seleccionar un item para entrada/salida, autocompletar la unidad
     document.getElementById("in_item").addEventListener("change", (e) => {
         const item = materiales.find(m => m.key === e.target.value);
@@ -316,16 +326,20 @@
         document.getElementById("out_unit").value = item ? (item.u || '') : '';
     });
 
-    function abrirEditor(key, nombre, min, max, stock, unidad) {
-        document.getElementById("editKey").value = key;
-        document.getElementById("editMaterialName").innerText = nombre;
-        document.getElementById("editMin").value = min;
-        document.getElementById("editMax").value = max;
-        document.getElementById("editStock").value = stock;
-        document.getElementById("editUnitManual").value = unidad === '-' ? '' : unidad;
-        document.getElementById("modalEditar").style.display = "block";
-    }
+   function abrirEditor(key) {
+    // Buscamos el material en nuestro array local usando la key
+    const item = materiales.find(m => m.key === key);
+    if(!item) return;
 
+    document.getElementById("editKey").value = key;
+    document.getElementById("editMaterialName").innerText = item.n;
+    document.getElementById("editMin").value = item.min || 0;
+    document.getElementById("editMax").value = item.max || 0;
+    document.getElementById("editStock").value = item.s;
+    document.getElementById("editUnitManual").value = (item.u && item.u !== '-') ? item.u : '';
+    
+    document.getElementById("modalEditar").style.display = "block";
+}
     function guardarEdicion() {
         const key = document.getElementById("editKey").value;
         const nuevoMin = parseFloat(document.getElementById("editMin").value) || 0;
