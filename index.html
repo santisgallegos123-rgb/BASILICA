@@ -3,418 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BASÍLICA | Control de Almacén</title>
+    <title>FILSA | Gestión de Inventario</title>
 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-auth-compat.js"></script>
 
     <style>
-        :root{
-            --red:#b71c1c;
-            --red-light:#e53935;
-            --white:#ffffff;
-            --bg:#f2f2f2;
-            --success:#2e7d32;
-            --danger:#c62828;                                               
-            --shadow:0 8px 20px rgba(0, 0, 0, 0.1);
+        :root {
+            --red: #b11226;
+            --red-hover: #8f0e1f;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --text-dark: #2d3436;
+            --text-light: #636e72;
+            --success: #00b894;
+            --border: #edf2f7;
         }
 
-        *{box-sizing:border-box}
-        body{ margin:0; font-family:"Segoe UI", sans-serif; background:var(--bg); overflow-x: hidden; }
+        * { box-sizing: border-box; outline: none; }
 
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* --- LOGIN (Minimalist Gradient) --- */
         #loginWrapper {
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; background: linear-gradient(135deg,var(--red),var(--red-light));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(rgba(177, 18, 38, 0.9), rgba(177, 18, 38, 0.9)), 
+                        url('https://www.transparenttextures.com/patterns/cubes.png');
         }
+
         .login-card {
-            background: white; padding: 40px; border-radius: 18px;
-            width: 360px; text-align: center; box-shadow: var(--shadow);
-        }
-        .login-card img{ max-width:200px; margin-bottom:15px; border-radius: 8px; }
-
-        #mainApp { display: none; }
-        
-        .top-bar {
-            background: var(--red); color: white; padding: 10px 25px;
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .top-bar img{ height:35px; border-radius: 4px; }
-
-        /* MENÚ LATERAL */
-        .side-menu {
-            height: 100%; width: 0; position: fixed; z-index: 2000;
-            top: 0; right: 0; background-color: white; 
-            overflow-x: hidden; transition: 0.4s;
-            padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .close-btn {
-            position: absolute; top: 15px; left: 20px;
-            font-size: 14px; font-weight: bold; color: #888;
-            cursor: pointer; border: 1px solid #ddd; padding: 5px 10px; border-radius: 5px;
+        .login-card img { width: 220px; margin-bottom: 30px; }
+        .login-field { margin-bottom: 20px; text-align: left; }
+        .login-field label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; }
+        .login-field input { width: 100%; padding: 14px; border: 1px solid var(--gray-300); border-radius: 10px; font-family: inherit; transition: 0.3s; }
+        .login-field input:focus { border-color: var(--red); }
+        .login-btn { width: 100%; padding: 16px; background: var(--red); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        .login-btn:hover { background: var(--red-hover); }
+
+        /* --- NAVEGACIÓN --- */
+        .hamburger-icon {
+            position: fixed;
+            top: 25px; right: 25px; z-index: 5000;
+            background: var(--red); color: white; border: none;
+            width: 50px; height: 50px; border-radius: 12px;
+            cursor: pointer; font-size: 20px; transition: 0.3s;
         }
 
-        .overlay {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
-            z-index: 1500;
+        #sideMenu {
+            position: fixed;
+            top: 0; right: -350px;
+            width: 320px; height: 100%;
+            background: var(--white); border-left: 1px solid var(--border);
+            z-index: 4500; transition: 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
+            padding: 100px 30px 30px;
         }
 
-        .side-menu button {
-            padding: 16px 25px; font-size: 15px; color: #444;
-            display: flex; align-items: center; gap: 15px; width: 90%;
-            margin: 8px auto; text-align: left; border: none; background: none;
-            cursor: pointer; border-radius: 12px; transition: 0.3s;
-        }
-        .side-menu button:hover { background-color: #fcebeb; color: var(--red); }
+        #sideMenu.active { right: 0; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; z-index: 4400; backdrop-filter: blur(4px); }
+        .menu-btn-side { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; background: white; text-align: left; cursor: pointer; font-weight: 600; font-family: inherit; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .menu-btn-side:hover { background: var(--gray-100); color: var(--red); border-color: var(--red); }
 
-        .menu-icon {
-            cursor: pointer; display: flex; flex-direction: column;
-            justify-content: space-around; width: 30px; height: 25px;
-            background: transparent; border: none;
-        }
-        .menu-icon div { width: 30px; height: 3px; background-color: white; border-radius: 5px; }
+        /* --- LAYOUT --- */
+        #mainApp { display: none; padding: 40px 20px; }
+        .container { max-width: 1500px; margin: auto; }
+        .logo-header { text-align: left; margin-bottom: 40px; padding-left: 10px; }
+        .logo-header img { width: 240px; }
 
-        /* MODALES */
-        .modal {
-            display: none; position: fixed; z-index: 3000; left: 0; top: 0;
-            width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);
-        }
-        .modal-content {
-            background-color: white; margin: 5% auto; padding: 25px;
-            border-radius: 15px; width: 95%; max-width: 900px; max-height: 85vh; overflow-y: auto;
+        .main-layout { display: grid; grid-template-columns: 400px 1fr; gap: 40px; }
+
+        .panel, .section {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
         }
 
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-        .main-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
-        .card-box { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--shadow); }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #fafafa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-size: 0.75rem; color: #666; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-        
-        input, select, .btn-submit { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; }
-        .btn-submit { border: none; color: white; font-weight: bold; cursor: pointer; }
-        .btn-in { background: var(--success); }
-        .btn-out { background: var(--danger); }
-        
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: bold; }
-        .critical { background: #ffd7d7; color: #b71c1c; }
-        .ok { background: #d7ffd9; color: #2e7d32; }
+        h3 { color: var(--text-dark); margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        h3 i { color: var(--red); font-size: 1.1rem; }
 
-        .edit-btn { background: none; border: none; cursor: pointer; color: #999; }
-        .edit-btn:hover { color: var(--red); transform: scale(1.1); }
+        label { display: block; margin-top: 18px; font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        select, input { width: 100%; padding: 12px 15px; margin-top: 8px; border: 1px solid var(--gray-200); border-radius: 12px; background: var(--gray-100); font-family: inherit; font-size: 0.9rem; transition: 0.3s; }
+        select:focus, input:focus { background: white; border-color: var(--red); }
 
-        @media(max-width: 1000px) { .main-layout { grid-template-columns: 1fr; } }
+        /* --- TABLA MAESTRA --- */
+        .search-container { position: relative; margin-bottom: 20px; }
+        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .search-container input { padding-left: 45px; background: white; border: 1px solid var(--border); width: 100%; max-width: 400px; }
+
+        .table-wrapper { max-height: 750px; overflow-y: auto; border-radius: 15px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { position: sticky; top: 0; background: white; text-align: left; padding: 18px; border-bottom: 2px solid var(--red); font-size: 0.8rem; text-transform: uppercase; color: var(--red); letter-spacing: 1px; z-index: 10; }
+        td { padding: 16px 18px; border-bottom: 1px solid var(--border); font-size: 0.9rem; transition: 0.2s; }
+        tr:hover td { background: var(--gray-100); }
+
+        .badge { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
+        .critical { background: #fff0f0; color: var(--red); border: 1px solid #ffcccc; }
+        .normal { background: #e6fffb; color: var(--success); border: 1px solid #b3f5e9; }
+
+        .btn-full { width: 100%; padding: 15px; border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-full:active { transform: scale(0.98); }
+
+        /* MODAL */
+        #modalHistorial {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 95%; max-width: 1000px; background: white; border: 1px solid var(--border);
+            border-radius: 30px; padding: 40px; z-index: 6000;
+        }
+
+        @media(max-width: 1100px) { .main-layout { grid-template-columns: 1fr; } .panel { position: static; } }
     </style>
 </head>
-<body onload="forzarLogin()">
+<body>
 
-<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+<button class="hamburger-icon" id="btnHamburger" onclick="toggleMenu()" style="display:none;"><i class="fas fa-bars"></i></button>
 
-<div id="sideMenu" class="side-menu">
-    <span class="close-btn" onclick="closeMenu()">✕ CERRAR</span>
-    
-    <div style="text-align:center; padding:20px; margin-top:20px;">
-        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg" style="width:80px; border-radius:10px;">
-        <h3 style="color:var(--red); margin:10px 0;">FILSA</h3>
-    </div>
-    <button onclick="openHistorial()"><span>📜</span> Historial de Movimientos</button>
-    <button onclick="exportarPDF()"><span>📄</span> Descargar Reporte PDF</button>
-    <button onclick="cerrarSesion()" style="color:var(--danger); margin-top:30px;"><span>🚪</span> Cerrar Sesión</button>
-</div>
-
-<div id="modalHistorial" class="modal">
-    <div class="modal-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="margin:0; color:var(--red);">Historial de Movimientos</h2>
-            <button onclick="closeModal('modalHistorial')" style="border:none; background:var(--red); color:white; padding:5px 15px; border-radius:5px; cursor:pointer;">Cerrar</button>
-        </div>
-        <div style="overflow-x:auto;">
-            <table>
-                <thead>
-                    <tr><th>Fecha</th><th>Tipo</th><th>Material</th><th>Cant.</th><th>Unidad</th><th>Ref/Modelo</th></tr>
-                </thead>
-                <tbody id="historialBody"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div id="modalEditar" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <h2 id="editMaterialName" style="color:var(--red); font-size:1.1rem; margin-top:0;">Ajustar Material</h2>
-        <input type="hidden" id="editKey">
-        
-        <label><b>Stock Actual:</b></label>
-        <input type="number" id="editStock" step="0.1" style="border: 1px solid var(--red);">
-
-        <label><b>Unidad de Medida (m, kg, pzs...):</b></label>
-        <input type="text" id="editUnitManual" placeholder="Ej: kg">
-        
-        <label>Mínimo:</label>
-        <input type="number" id="editMin" step="0.1">
-        
-        <label>Máximo:</label>
-        <input type="number" id="editMax" step="0.1">
-        
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="btn-submit" style="background:#666;" onclick="closeModal('modalEditar')">Cancelar</button>
-            <button class="btn-submit" style="background:var(--success);" onclick="guardarEdicion()">Guardar</button>
-        </div>
-    </div>
+<div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
+<div id="sideMenu">
+    <h3><i class="fas fa-cog"></i> Opciones</h3>
+    <button class="menu-btn-side" onclick="mostrarHistorial()"><i class="fas fa-history"></i> Historial de Movimientos</button>
+    <button class="menu-btn-side" onclick="descargarPDF()"><i class="fas fa-file-pdf"></i> Exportar Reporte PDF</button>
+    <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+    <button class="menu-btn-side" style="color:var(--red); border-color: #ffcccc;" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
 </div>
 
 <div id="loginWrapper">
     <div class="login-card">
-        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
-        <h3 style="color:var(--red);">SISTEMA DE CONTROL</h3>
-        <input type="email" id="user" placeholder="Usuario">
-        <input type="password" id="pass" placeholder="Contraseña">
-        <button class="btn-submit" style="background:var(--red);" onclick="validarLogin()">INGRESAR</button>
+        <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg" alt="FILSA">
+        <div class="login-field"><label>Correo Corporativo</label><input type="email" id="user" placeholder="usuario@filsa.com"></div>
+        <div class="login-field"><label>Contraseña</label><input type="password" id="pass" placeholder="••••••••"></div>
+        <button class="login-btn" onclick="validarLogin()">INICIAR SISTEMA</button>
     </div>
 </div>
 
 <div id="mainApp">
-    <header class="top-bar">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg">
-            <span style="font-weight:bold;">ALMACÉN GENERAL</span>
-        </div>
-        <button class="menu-icon" onclick="openMenu()"><div></div><div></div><div></div></button>
-    </header>
-
     <div class="container">
+        <div class="logo-header"><img src="https://www.cofisatam.com.mx/img/portfolio/filsa.jpg" alt="FILSA"></div>
+        
         <div class="main-layout">
-            <div class="column-actions">
-                <div class="card-box" style="border-top:5px solid var(--danger); margin-bottom:20px;">
-                    <h2 style="font-size:1rem; color:var(--danger);">REGISTRAR SALIDA</h2>
-                    <select id="out_item"></select>
-                    <input type="number" id="out_qty" placeholder="Cantidad" step="0.1">
-                    <input type="text" id="out_unit" placeholder="Confirmar Unidad" readonly style="background:#f9f9f9; color:#888;">
-                    <input type="text" id="out_model" placeholder="Modelo / Uso">
-                    <input type="text" id="out_ref" placeholder="Referencia">
-                    <button class="btn-submit btn-out" onclick="procesar('salida')">DAR DE BAJA</button>
+            <aside>
+                <div class="panel" style="margin-bottom: 30px;">
+                    <h3><i class="fas fa-arrow-down"></i> Entrada</h3>
+                    <label>Seleccionar Material</label>
+                    <select class="itemSelect"></select>
+                    <label>Cantidad</label>
+                    <input type="number" id="qtyEntrada" value="1" min="1">
+                    <label>Número de Requisición</label>
+                    <input type="text" id="reqEntrada" placeholder="REQ-000">
+                    <button class="btn-full" style="background:var(--success);" onclick="registrar('entrada')">
+                        <i class="fas fa-plus-circle"></i> INGRESAR STOCK
+                    </button>
                 </div>
-                <div class="card-box" style="border-top:5px solid var(--success);">
-                    <h2 style="font-size:1rem; color:var(--success);">REGISTRAR ENTRADA</h2>
-                    <select id="in_item"></select>
-                    <input type="number" id="in_qty" placeholder="Cantidad" step="0.1">
-                    <input type="text" id="in_unit" placeholder="Confirmar Unidad" readonly style="background:#f9f9f9; color:#888;">
-                    <input type="text" id="in_model" placeholder="Modelo">
-                    <input type="text" id="in_ref" placeholder="Referencia">
-                    <button class="btn-submit btn-in" onclick="procesar('entrada')">DAR DE ALTA</button>
-                </div>
-            </div>
 
-            <div class="card-box">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h2 style="margin:0; font-size:1rem;">EXISTENCIAS</h2>
-                    <input type="text" id="busqueda" placeholder="🔎 Buscar..." style="width:200px; margin:0;">
+                <div class="panel">
+                    <h3><i class="fas fa-arrow-up"></i> Salida</h3>
+                    <label>Seleccionar Material</label>
+                    <select class="itemSelect"></select>
+                    <label>Cantidad</label>
+                    <input type="number" id="qtySalida" value="1" min="1">
+                    <label>Folio de Salida</label>
+                    <input type="text" id="folioSalida" placeholder="FOL-000">
+                    <label>Modelo / Destino</label>
+                    <input type="text" id="modeloSalida" placeholder="Nombre del Modelo">
+                    <button class="btn-full" style="background:var(--red);" onclick="registrar('salida')">
+                        <i class="fas fa-minus-circle"></i> REGISTRAR SALIDA
+                    </button>
                 </div>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Descripción</th>
-                                <th style="text-align:center;">Unidad</th>
-                                <th style="text-align:center;">Mín</th>
-                                <th style="text-align:center;">Máx</th>
-                                <th style="text-align:center;">Stock</th>
-                                <th style="text-align:center;">Estado</th>
-                                <th style="text-align:center;">Edit</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaBody"></tbody>
-                    </table>
+            </aside>
+
+            <main>
+                <div class="section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom: 25px;">
+                        <h3 style="margin:0;"><i class="fas fa-boxes-stacked"></i> Inventario Maestro</h3>
+                        <div class="search-container">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" onkeyup="filtrarTabla()" placeholder="Buscar material...">
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table id="tablaMaestra">
+                            <thead>
+                                <tr><th>Descripción</th><th>Stock</th><th>Mín/Máx</th><th>Estado</th></tr>
+                            </thead>
+                            <tbody id="bodyListaMaestra"></tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 </div>
 
+<div id="modalHistorial">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px;">
+        <h3 style="margin:0;"><i class="fas fa-history"></i> Historial Reciente</h3>
+        <button onclick="cerrarHistorial()" style="background:var(--gray-100); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="max-height: 500px; overflow-y: auto; border-radius: 15px; border: 1px solid var(--border);">
+        <table>
+            <thead style="background: var(--gray-100);"><tr><th>Fecha</th><th>Item</th><th>Cant</th><th>Mov</th><th>Referencia</th></tr></thead>
+            <tbody id="listaHistorial"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
+    // Configuración Firebase (La misma proporcionada)
     const firebaseConfig = {
-        apiKey: "AIzaSyA_CeDhAhWEyqBO5rO0yo2JdttXKz5CCjU",
-        authDomain: "basilica-dd3b1.firebaseapp.com",
-        databaseURL: "https://basilica-dd3b1-default-rtdb.firebaseio.com",
-        projectId: "basilica-dd3b1",
-        storageBucket: "basilica-dd3b1.firebasestorage.app",
-        messagingSenderId: "1000902846657",
-        appId: "1:1000902846657:web:5739da8a32cbb425b74c40"
+        apiKey: "AIzaSyArJXmpHrZNbGz3AYRtz2pg_g-PghfxgkI",
+        authDomain: "basilica-c0fe0.firebaseapp.com",
+        databaseURL: "https://basilica-c0fe0-default-rtdb.firebaseio.com",
+        projectId: "basilica-c0fe0",
+        storageBucket: "basilica-c0fe0.firebasestorage.app",
+        messagingSenderId: "287745460477",
+        appId: "1:287745460477:web:be24ed1deb6398c5c11694"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+    let inventory = [];
 
-    function forzarLogin() { auth.signOut(); }
-
-    let materiales = [];
+    // --- SEGURIDAD: CIERRE AL REFRESCAR ---
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE);
 
     auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById("loginWrapper").style.display = "none";
-            document.getElementById("mainApp").style.display = "block";
-            cargarDatos();
+        if(user){
+            document.getElementById("loginWrapper").style.display="none";
+            document.getElementById("mainApp").style.display="block";
+            document.getElementById("btnHamburger").style.display="block";
+            init();
         } else {
-            document.getElementById("loginWrapper").style.display = "flex";
-            document.getElementById("mainApp").style.display = "none";
+            document.getElementById("loginWrapper").style.display="flex";
+            document.getElementById("mainApp").style.display="none";
+            document.getElementById("btnHamburger").style.display="none";
         }
     });
 
-    function cargarDatos() {
-        db.ref('inventario_basilica').on('value', snap => {
-            const data = snap.val();
-            if(data){
-                materiales = Object.keys(data).map(k => ({ key: k, ...data[k] }));
-                renderizar();
-            }
+    function validarLogin(){
+        const u = document.getElementById("user").value;
+        const p = document.getElementById("pass").value;
+        auth.signInWithEmailAndPassword(u, p).catch(e => alert("Acceso denegado: Verifique sus credenciales."));
+    }
+
+    function cerrarSesion(){ auth.signOut(); location.reload(); }
+    
+    function toggleMenu() {
+        const m = document.getElementById("sideMenu");
+        const o = document.getElementById("overlay");
+        m.classList.toggle("active");
+        o.style.display = m.classList.contains("active") ? "block" : "none";
+    }
+
+    function init() {
+        db.ref('inventario').on('value', snap => {
+            inventory = snap.val() || [];
+            render();
         });
     }
 
-    function renderizar() {
-    const body = document.getElementById("tablaBody");
-    const selIn = document.getElementById("in_item");
-    const selOut = document.getElementById("out_item");
-    const query = document.getElementById("busqueda").value.toLowerCase();
-    
-    // Limpiamos una sola vez al inicio
-    let htmlTabla = "";
-    let options = "<option value=''>-- Seleccionar --</option>";
+    function render() {
+        const bodyMaestro = document.getElementById("bodyListaMaestra");
+        const selects = document.querySelectorAll(".itemSelect");
+        bodyMaestro.innerHTML = "";
+        selects.forEach(s => s.innerHTML = "");
 
-    materiales.sort((a,b) => a.n.localeCompare(b.n)).forEach(m => {
-        if (query && !m.n.toLowerCase().includes(query)) return;
-        
-        const bajo = m.s < (m.min || 0);
-        const unidad = m.u || '-';
-        
-        // Construimos el string de la fila
-        // IMPORTANTE: Solo pasamos m.key para evitar errores de comillas en los nombres
-        htmlTabla += `<tr>
-            <td>${m.n}</td>
-            <td style="text-align:center; color:#666;">${unidad}</td>
-            <td style="text-align:center; color:#888;">${m.min || 0}</td>
-            <td style="text-align:center; color:#888;">${m.max || 0}</td>
-            <td style="text-align:center;"><strong>${m.s}</strong></td>
-            <td style="text-align:center;"><span class="status-pill ${bajo ? 'critical' : 'ok'}">${bajo ? 'BAJO' : 'OK'}</span></td>
-            <td style="text-align:center;">
-                <button class="edit-btn" onclick="abrirEditor('${m.key}')">⚙️</button>
-            </td>
-        </tr>`;
-        
-        options += `<option value="${m.key}">${m.n}</option>`;
-    });
+        inventory.forEach((item, index) => {
+            if(!item) return;
+            const isCrit = item.min > 0 && item.stock < item.min;
+            bodyMaestro.innerHTML += `<tr>
+                <td><strong>${item.id}</strong></td>
+                <td><span class="badge ${isCrit ? 'critical' : 'normal'}">${item.stock}</span></td>
+                <td><span style="color:var(--text-light); font-size:0.8rem;">${item.min} / ${item.max}</span></td>
+                <td>${isCrit ? '<b style="color:var(--red);">REQUISICIÓN</b>' : '<b style="color:var(--success);">ÓPTIMO</b>'}</td>
+            </tr>`;
 
-    // Inyectamos todo el HTML de golpe (más eficiente)
-    body.innerHTML = htmlTabla;
-    selIn.innerHTML = options;
-    selOut.innerHTML = options;
-}
-    // Al seleccionar un item para entrada/salida, autocompletar la unidad
-    document.getElementById("in_item").addEventListener("change", (e) => {
-        const item = materiales.find(m => m.key === e.target.value);
-        document.getElementById("in_unit").value = item ? (item.u || '') : '';
-    });
-    document.getElementById("out_item").addEventListener("change", (e) => {
-        const item = materiales.find(m => m.key === e.target.value);
-        document.getElementById("out_unit").value = item ? (item.u || '') : '';
-    });
-
-   function abrirEditor(key) {
-    // Buscamos el material en nuestro array local usando la key
-    const item = materiales.find(m => m.key === key);
-    if(!item) return;
-
-    document.getElementById("editKey").value = key;
-    document.getElementById("editMaterialName").innerText = item.n;
-    document.getElementById("editMin").value = item.min || 0;
-    document.getElementById("editMax").value = item.max || 0;
-    document.getElementById("editStock").value = item.s;
-    document.getElementById("editUnitManual").value = (item.u && item.u !== '-') ? item.u : '';
-    
-    document.getElementById("modalEditar").style.display = "block";
-}
-    function guardarEdicion() {
-        const key = document.getElementById("editKey").value;
-        const nuevoMin = parseFloat(document.getElementById("editMin").value) || 0;
-        const nuevoMax = parseFloat(document.getElementById("editMax").value) || 0;
-        const nuevoStock = parseFloat(document.getElementById("editStock").value) || 0;
-        const nuevaUnidad = document.getElementById("editUnitManual").value.trim();
-
-        db.ref(`inventario_basilica/${key}`).update({ 
-            min: nuevoMin, 
-            max: nuevoMax,
-            s: nuevoStock,
-            u: nuevaUnidad
-        })
-        .then(() => { closeModal('modalEditar'); alert("Material actualizado"); });
-    }
-
-    function validarLogin() {
-        const u = document.getElementById("user").value.trim();
-        const p = document.getElementById("pass").value.trim();
-        auth.signInWithEmailAndPassword(u, p).catch(() => alert("Error de acceso"));
-    }
-
-    function procesar(tipo) {
-        const pfx = tipo === 'entrada' ? 'in' : 'out';
-        const id = document.getElementById(`${pfx}_item`).value;
-        const qty = parseFloat(document.getElementById(`${pfx}_qty`).value);
-        const ref = document.getElementById(`${pfx}_ref`).value;
-        const mod = document.getElementById(`${pfx}_model`).value;
-
-        if (!id || isNaN(qty) || qty <= 0) { alert("Complete los campos"); return; }
-
-        const item = materiales.find(x => x.key === id);
-        let total = tipo === 'entrada' ? item.s + qty : item.s - qty;
-        if (total < 0) { alert("Stock insuficiente"); return; }
-
-        db.ref(`inventario_basilica/${id}`).update({ s: total });
-        db.ref('historial_basilica').push({
-            fecha: new Date().toLocaleString(),
-            tipo: tipo.toUpperCase(),
-            material: item.n,
-            cantidad: qty,
-            unidad: item.u || 'N/A',
-            referencia: ref || '-',
-            modelo: mod || '-'
-        });
-        alert("Operación completada");
-        document.getElementById(`${pfx}_qty`).value = "";
-    }
-
-    function openMenu() { document.getElementById("sideMenu").style.width = "280px"; document.getElementById("overlay").style.display = "block"; }
-    function closeMenu() { document.getElementById("sideMenu").style.width = "0"; document.getElementById("overlay").style.display = "none"; }
-    function closeModal(id) { document.getElementById(id).style.display = "none"; }
-    function cerrarSesion() { auth.signOut(); }
-    document.getElementById("busqueda").addEventListener("input", renderizar);
-
-    function openHistorial() { 
-        closeMenu(); 
-        document.getElementById("modalHistorial").style.display = "block"; 
-        db.ref('historial_basilica').limitToLast(50).on('value', snap => {
-            const body = document.getElementById("historialBody");
-            body.innerHTML = "";
-            const data = snap.val();
-            if(data) Object.values(data).reverse().forEach(h => {
-                body.innerHTML += `<tr><td>${h.fecha}</td><td>${h.tipo}</td><td>${h.material}</td><td>${h.cantidad}</td><td>${h.unidad}</td><td>${h.referencia}</td></tr>`;
+            selects.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = index; opt.textContent = item.id;
+                s.appendChild(opt);
             });
         });
     }
 
-    function exportarPDF() {
+    function filtrarTabla() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let rows = document.getElementById("bodyListaMaestra").getElementsByTagName("tr");
+        for (let row of rows) {
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+        }
+    }
+
+    function registrar(tipo) {
+        const isEntrada = tipo === 'entrada';
+        const select = document.querySelectorAll(".itemSelect")[isEntrada ? 0 : 1];
+        const idx = select.value;
+        const qty = parseInt(document.getElementById(isEntrada ? "qtyEntrada" : "qtySalida").value);
+        const ref = isEntrada ? 
+            document.getElementById("reqEntrada").value : 
+            `${document.getElementById("folioSalida").value} | ${document.getElementById("modeloSalida").value}`;
+
+        if(isNaN(qty) || qty <= 0) return alert("Ingrese una cantidad válida");
+        let nStock = isEntrada ? inventory[idx].stock + qty : inventory[idx].stock - qty;
+        if(nStock < 0) return alert("No hay suficiente existencia en inventario.");
+
+        if(confirm(`¿Desea registrar esta ${tipo} de material?`)) {
+            db.ref(`inventario/${idx}`).update({ stock: nStock });
+            db.ref('historial').push({
+                item: inventory[idx].id, mov: (isEntrada ? '+' : '-') + qty,
+                tipo: tipo.toUpperCase(), ref: ref || "S/R", fecha: new Date().toLocaleString()
+            });
+            // Reset campos
+            if(isEntrada) document.getElementById("reqEntrada").value = "";
+            else { document.getElementById("folioSalida").value = ""; document.getElementById("modeloSalida").value = ""; }
+        }
+    }
+
+    function mostrarHistorial() {
+        toggleMenu();
+        document.getElementById("modalHistorial").style.display = "block";
+        document.getElementById("overlay").style.display = "block";
+        db.ref('historial').limitToLast(50).once('value', snap => {
+            const lista = document.getElementById("listaHistorial");
+            lista.innerHTML = "";
+            let data = [];
+            snap.forEach(c => { data.unshift(c.val()); });
+            data.forEach(h => {
+                lista.innerHTML += `<tr>
+                    <td><small>${h.fecha}</small></td>
+                    <td><b>${h.item}</b></td>
+                    <td style="color:${h.mov.includes('+') ? 'var(--success)' : 'var(--red)'}"><b>${h.mov}</b></td>
+                    <td><small>${h.tipo}</small></td>
+                    <td><small>${h.ref}</small></td>
+                </tr>`;
+            });
+        });
+    }
+
+    function cerrarHistorial() {
+        document.getElementById("modalHistorial").style.display = "none";
+        document.getElementById("overlay").style.display = "none";
+    }
+
+    function descargarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text("REPORTE FILSA", 14, 15);
-        const filas = materiales.map(m => [m.n, m.u || '-', m.min || 0, m.max || 0, m.s]);
-        doc.autoTable({ head: [['Material', 'Unidad', 'Min', 'Max', 'Stock']], body: filas, startY: 20 });
-        doc.save("Inventario.pdf");
+        doc.setFont("helvetica", "bold");
+        doc.text("FILSA - REPORTE DE INVENTARIO MAESTRO", 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 28);
+        const filas = inventory.map(i => [i.id, i.stock, `${i.min}/${i.max}`, i.stock < i.min ? "REQUISICIÓN" : "OK"]);
+        doc.autoTable({ 
+            startY: 35, 
+            head: [['Descripción', 'Stock Actual', 'Mín/Máx', 'Estado']], 
+            body: filas,
+            headStyles: { fillColor: [177, 18, 38] },
+            theme: 'grid'
+        });
+        doc.save(`Reporte_Filsa_${new Date().toLocaleDateString()}.pdf`);
     }
 </script>
 </body>
