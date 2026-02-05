@@ -389,20 +389,39 @@
             row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
         }
     }
-
-    function descargarPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("REPORTE DE INVENTARIO FILSA", 14, 20);
-        const filas = inventory.map(i => [i.id, i.stock, i.unit, `${i.min}/${i.max}`]);
-        doc.autoTable({ 
-            startY: 30, 
-            head: [['Material', 'Stock', 'Unidad', 'Mín/Máx']], 
-            body: filas,
-            headStyles: { fillColor: [177, 18, 38] }
+function mostrarHistorial() {
+    db.ref('historial').limitToLast(20).once('value', snap => {
+        const data = snap.val();
+        if (!data) return alert("No hay movimientos registrados.");
+        
+        let msj = "Últimos 20 movimientos:\n\n";
+        Object.values(data).reverse().forEach(mov => {
+            msj += `[${mov.fecha}] ${mov.tipo}: ${mov.item} (${mov.mov})\n`;
         });
-        doc.save("Inventario.pdf");
-    }
+        alert(msj);
+    });
+}
+    function descargarPDF() {
+    // Intentar obtener jsPDF de diferentes formas según la carga de la librería
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text("REPORTE DE INVENTARIO FILSA", 14, 20);
+    
+    // Filtrar nulos por si acaso hay espacios vacíos en el array de Firebase
+    const filas = inventory
+        .filter(i => i !== null)
+        .map(i => [i.id, i.stock, i.unit, `${i.min}/${i.max}`]);
+
+    doc.autoTable({ 
+        startY: 30, 
+        head: [['Material', 'Stock', 'Unidad', 'Mín/Máx']], 
+        body: filas,
+        headStyles: { fillColor: [177, 18, 38] }
+    });
+
+    doc.save("Inventario_Filsa.pdf");
+}
 </script>
 </body>
 </html>
